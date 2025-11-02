@@ -17,7 +17,7 @@ class FTCOnlineCourseFeedbackDeliverServerlessHandlerTests {
         TestContext context = new TestContext();
 
         APIGatewayProxyRequestEvent request = new APIGatewayProxyRequestEvent();
-        request.setHttpMethod("POST");
+        request.setHttpMethod("GET");
         request.setPath("/");
         request.setBody(PayloadObjectMapper.writeValueAsString(new FeedbackRequest("teacher@email.com", "123", false, "New Feedback", "New Comment")));
 

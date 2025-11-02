@@ -10,6 +10,7 @@ import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.Fee
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackResponse;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.PayloadObjectMapper;
 
+import java.security.InvalidParameterException;
 import java.util.List;
 
 public class FTCOnlineCourseFeedbackDeliverServerlessHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -24,11 +25,20 @@ public class FTCOnlineCourseFeedbackDeliverServerlessHandler implements RequestH
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent request, Context context) {
         LambdaLogger logger = context.getLogger();
         logger.log("Requisição recebida em - FTC Online Course Feedback Deliver - Payload: " + request.getBody());
+        validateAPIGatewayProxyRequestEvent(request, context);
+
         FeedbackRequest feedbackRequest = PayloadObjectMapper.readValue(request.getBody(), FeedbackRequest.class);
         List<FeedbackResponse> feedbackResponse = ftcOnlineCourseFeedbackDeliverServerlessDAO.getFeedbackResponse(feedbackRequest);
+
         return new APIGatewayProxyResponseEvent()
                 .withStatusCode(200)
                 .withBody(PayloadObjectMapper.writeValueAsString(feedbackResponse))
                 .withIsBase64Encoded(false);
+    }
+
+    private void validateAPIGatewayProxyRequestEvent(APIGatewayProxyRequestEvent request, Context context) {
+        if (!request.getHttpMethod().equals("GET")) {
+            throw new InvalidParameterException("Verbo HTTP inválido.");
+        }
     }
 }

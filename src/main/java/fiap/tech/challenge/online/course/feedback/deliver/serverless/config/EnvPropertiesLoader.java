@@ -1,4 +1,4 @@
-package fiap.tech.challenge.online.course.feedback.deliver.serverless.property;
+package fiap.tech.challenge.online.course.feedback.deliver.serverless.config;
 
 import io.github.cdimascio.dotenv.Dotenv;
 

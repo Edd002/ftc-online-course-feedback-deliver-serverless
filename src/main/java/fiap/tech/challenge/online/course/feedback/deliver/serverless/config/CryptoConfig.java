@@ -1,4 +1,4 @@
-package fiap.tech.challenge.online.course.feedback.deliver.serverless.crypto;
+package fiap.tech.challenge.online.course.feedback.deliver.serverless.config;
 
 import javax.crypto.*;
 import javax.crypto.spec.DESedeKeySpec;
@@ -9,18 +9,25 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
+import java.util.Properties;
 
-public class CryptoUtil {
+public class CryptoConfig {
 
     private final Cipher cipher;
     private final SecretKey secretKey;
 
-    public static CryptoUtil newInstance(String key) {
+    public CryptoConfig() {
         try {
+            Properties applicationProperties = EnvPropertiesLoader.loadProperties(getClass().getClassLoader());
+            String key = applicationProperties.getProperty("application.crypto.key");
             if (key == null || key.isEmpty()) {
                 throw new InvalidParameterException("Erro na recuperação da chave de criptografia de senha.");
             }
-            return new CryptoUtil(key);
+            byte[] encryptKey = key.getBytes(StandardCharsets.UTF_8);
+            cipher = Cipher.getInstance("DESede");
+            KeySpec keySpec = new DESedeKeySpec(encryptKey);
+            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("DESede");
+            secretKey = secretKeyFactory.generateSecret(keySpec);
         } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeySpecException e) {
             throw new RuntimeException("Erro ao gerar senha criptografada.");
         } catch (Exception exception) {
@@ -28,15 +35,7 @@ public class CryptoUtil {
         }
     }
 
-    private CryptoUtil(String key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException {
-        byte[] encryptKey = key.getBytes(StandardCharsets.UTF_8);
-        cipher = Cipher.getInstance("DESede");
-        KeySpec keySpec = new DESedeKeySpec(encryptKey);
-        SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("DESede");
-        secretKey = secretKeyFactory.generateSecret(keySpec);
-    }
-
-    private String encrypt(String value) {
+    public String encrypt(String value) {
         try {
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
             byte[] cipherText = cipher.doFinal(value.getBytes(StandardCharsets.UTF_8));

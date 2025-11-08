@@ -10,7 +10,8 @@ public class DataSourceProperties {
     private final String username;
     private final String password;
 
-    public DataSourceProperties(Properties applicationProperties) {
+    public DataSourceProperties() {
+        Properties applicationProperties = EnvPropertiesLoader.loadProperties(getClass().getClassLoader());
         this.host = applicationProperties.getProperty("application.datasource.hostname");
         this.port = Integer.parseInt(applicationProperties.getProperty("application.datasource.port"));
         this.database = applicationProperties.getProperty("application.datasource.database");

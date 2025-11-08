@@ -1,7 +1,7 @@
 package fiap.tech.challenge.online.course.feedback.deliver.serverless.dao;
 
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.CryptoConfig;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.DataSourceProperties;
-import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.EnvPropertiesLoader;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackRequest;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackResponse;
 
@@ -9,15 +9,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Properties;
 
 public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
 
     private final Connection connection;
-    private final Properties applicationProperties = EnvPropertiesLoader.loadProperties(getClass().getClassLoader());
 
     public FTCOnlineCourseFeedbackDeliverServerlessDAO() {
-        DataSourceProperties dataSourceProperties = new DataSourceProperties(applicationProperties);
+        DataSourceProperties dataSourceProperties = new DataSourceProperties();
         try {
             connection = DriverManager.getConnection(dataSourceProperties.getJdbcUrl(), dataSourceProperties.getUsername(), dataSourceProperties.getPassword());
             if (!connection.isValid(0)) {
@@ -36,7 +34,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
                 case ADMINISTRATOR -> connection.prepareStatement("SELECT id FROM t_administrator WHERE email = ? AND access_key = ?");
             };
             preparedStatement.setString(1, feedbackRequest.email());
-            preparedStatement.setString(2, feedbackRequest.accessKey());
+            preparedStatement.setString(2, new CryptoConfig().decrypt(feedbackRequest.accessKey()));
             ResultSet resultSet = preparedStatement.executeQuery();
             if (!resultSet.next()) {
                 throw new NoSuchElementException("Nenhum usuário encontrado com as credenciais infommadas foi encontrado para realizar a busca de feedbacks.");

@@ -10,13 +10,12 @@ public class DataSourceProperties {
     private final String username;
     private final String password;
 
-    public DataSourceProperties() {
-        Properties config = EnvPropertiesLoader.loadProperties(getClass().getClassLoader());
-        this.host = config.getProperty("application.datasource.hostname");
-        this.port = Integer.parseInt(config.getProperty("application.datasource.port"));
-        this.database = config.getProperty("application.datasource.database");
-        this.username = config.getProperty("application.datasource.username");
-        this.password = config.getProperty("application.datasource.password");
+    public DataSourceProperties(Properties applicationProperties) {
+        this.host = applicationProperties.getProperty("application.datasource.hostname");
+        this.port = Integer.parseInt(applicationProperties.getProperty("application.datasource.port"));
+        this.database = applicationProperties.getProperty("application.datasource.database");
+        this.username = applicationProperties.getProperty("application.datasource.username");
+        this.password = applicationProperties.getProperty("application.datasource.password");
     }
 
     public String getHost() {

@@ -1,6 +1,7 @@
 package fiap.tech.challenge.online.course.feedback.deliver.serverless.dao;
 
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.DataSourceProperties;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.EnvPropertiesLoader;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackRequest;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackResponse;
 
@@ -8,13 +9,15 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 
 public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
 
     private final Connection connection;
+    private final Properties applicationProperties = EnvPropertiesLoader.loadProperties(getClass().getClassLoader());
 
     public FTCOnlineCourseFeedbackDeliverServerlessDAO() {
-        DataSourceProperties dataSourceProperties = new DataSourceProperties();
+        DataSourceProperties dataSourceProperties = new DataSourceProperties(applicationProperties);
         try {
             connection = DriverManager.getConnection(dataSourceProperties.getJdbcUrl(), dataSourceProperties.getUsername(), dataSourceProperties.getPassword());
             if (!connection.isValid(0)) {
@@ -25,13 +28,32 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
         }
     }
 
-    public List<FeedbackResponse> getFeedbackResponse(FeedbackRequest feedbackRequest) {
+    public Long getUserIdByEmailAndAccessKey(FeedbackRequest feedbackRequest) {
+        try {
+            PreparedStatement preparedStatement = switch (feedbackRequest.userTypeRequest()) {
+                case TEACHER -> connection.prepareStatement("SELECT id FROM t_teacher WHERE email = ? AND access_key = ?");
+                case STUDENT -> connection.prepareStatement("SELECT id FROM t_student WHERE email = ? AND access_key = ?");
+                case ADMINISTRATOR -> connection.prepareStatement("SELECT id FROM t_administrator WHERE email = ? AND access_key = ?");
+            };
+            preparedStatement.setString(1, feedbackRequest.email());
+            preparedStatement.setString(2, feedbackRequest.accessKey());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (!resultSet.next()) {
+                throw new NoSuchElementException("Nenhum usuário encontrado com as credenciais infommadas foi encontrado para realizar a busca de feedbacks.");
+            }
+            return resultSet.getLong("id");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<FeedbackResponse> getFeedbackResponse(Long userId, FeedbackRequest feedbackRequest) {
         List<FeedbackResponse> feedbackResponseList = new ArrayList<>();
         try {
             PreparedStatement preparedStatement = switch (feedbackRequest.userTypeRequest()) {
-                case TEACHER -> preparedStatementTeacher(connection, feedbackRequest);
-                case STUDENT -> preparedStatementStudent(connection, feedbackRequest);
-                case ADMINISTRATOR -> preparedStatementAdministrator(connection, feedbackRequest);
+                case TEACHER -> preparedStatementTeacher(connection, userId, feedbackRequest);
+                case STUDENT -> preparedStatementStudent(connection, userId, feedbackRequest);
+                case ADMINISTRATOR -> preparedStatementAdministrator(connection, userId, feedbackRequest);
             };
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
@@ -48,7 +70,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
         return feedbackResponseList;
     }
 
-    private static PreparedStatement preparedStatementTeacher(Connection connection, FeedbackRequest feedbackRequest) throws SQLException {
+    private PreparedStatement preparedStatementTeacher(Connection connection, Long userId, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, ts.name as name_email, ts.email as student_email FROM public.t_feedback tf " +
                 "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
@@ -58,17 +80,10 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
                 "INNER JOIN public.t_administrator tadmin on tadmin.id = tt.fk_administrator " +
                 "WHERE tt.id = ? " +
                 "AND (? IS NULL OR tf.urgent = ?) AND (? IS NULL OR tf.description LIKE CONCAT( '%', ?, '%')) AND (? IS NULL OR tf.comment LIKE CONCAT( '%', ?, '%'));");
-        preparedStatement.setLong(1, getUserByEmailAndAccessKey(connection, feedbackRequest));
-        preparedStatement.setBoolean(2, feedbackRequest.urgent());
-        preparedStatement.setBoolean(3, feedbackRequest.urgent());
-        preparedStatement.setString(4, feedbackRequest.description());
-        preparedStatement.setString(5, feedbackRequest.description());
-        preparedStatement.setString(6, feedbackRequest.comment());
-        preparedStatement.setString(7, feedbackRequest.comment());
-        return preparedStatement;
+        return setPreparedStatementParameters(userId, feedbackRequest, preparedStatement);
     }
 
-    private static PreparedStatement preparedStatementStudent(Connection connection, FeedbackRequest feedbackRequest) throws SQLException {
+    private PreparedStatement preparedStatementStudent(Connection connection, Long userId, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, ts.name as name_email, ts.email as student_email FROM public.t_feedback tf " +
                         "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
@@ -76,19 +91,12 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
                         "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +
                         "INNER JOIN public.t_student ts on ts.id = tts.fk_student " +
                         "INNER JOIN public.t_administrator tadmin on tadmin.id = tt.fk_administrator " +
-                        "WHERE tt.id = ? " +
+                        "WHERE ts.id = ? " +
                         "AND (? IS NULL OR tf.urgent = ?) AND (? IS NULL OR tf.description LIKE CONCAT( '%', ?, '%')) AND (? IS NULL OR tf.comment LIKE CONCAT( '%', ?, '%'));");
-        preparedStatement.setLong(1, getUserByEmailAndAccessKey(connection, feedbackRequest));
-        preparedStatement.setBoolean(2, feedbackRequest.urgent());
-        preparedStatement.setBoolean(3, feedbackRequest.urgent());
-        preparedStatement.setString(4, feedbackRequest.description());
-        preparedStatement.setString(5, feedbackRequest.description());
-        preparedStatement.setString(6, feedbackRequest.comment());
-        preparedStatement.setString(7, feedbackRequest.comment());
-        return preparedStatement;
+        return setPreparedStatementParameters(userId, feedbackRequest, preparedStatement);
     }
 
-    private static PreparedStatement preparedStatementAdministrator(Connection connection, FeedbackRequest feedbackRequest) throws SQLException {
+    private PreparedStatement preparedStatementAdministrator(Connection connection, Long userId, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, ts.name as name_email, ts.email as student_email FROM public.t_feedback tf " +
                         "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
@@ -96,9 +104,13 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
                         "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +
                         "INNER JOIN public.t_student ts on ts.id = tts.fk_student " +
                         "INNER JOIN public.t_administrator tadmin on tadmin.id = tt.fk_administrator " +
-                        "WHERE tt.id = ? " +
+                        "WHERE tadmin.id = ? " +
                         "AND (? IS NULL OR tf.urgent = ?) AND (? IS NULL OR tf.description LIKE CONCAT( '%', ?, '%')) AND (? IS NULL OR tf.comment LIKE CONCAT( '%', ?, '%'));");
-        preparedStatement.setLong(1, getUserByEmailAndAccessKey(connection, feedbackRequest));
+        return setPreparedStatementParameters(userId, feedbackRequest, preparedStatement);
+    }
+
+    private PreparedStatement setPreparedStatementParameters(Long userId, FeedbackRequest feedbackRequest, PreparedStatement preparedStatement) throws SQLException {
+        preparedStatement.setLong(1, userId);
         preparedStatement.setBoolean(2, feedbackRequest.urgent());
         preparedStatement.setBoolean(3, feedbackRequest.urgent());
         preparedStatement.setString(4, feedbackRequest.description());
@@ -106,20 +118,5 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
         preparedStatement.setString(6, feedbackRequest.comment());
         preparedStatement.setString(7, feedbackRequest.comment());
         return preparedStatement;
-    }
-
-    private static Long getUserByEmailAndAccessKey(Connection connection, FeedbackRequest feedbackRequest) throws SQLException {
-        PreparedStatement preparedStatement = switch (feedbackRequest.userTypeRequest()) {
-            case TEACHER -> connection.prepareStatement("SELECT id FROM t_teacher WHERE email = ? AND access_key = ?");
-            case STUDENT -> connection.prepareStatement("SELECT id FROM t_student WHERE email = ? AND access_key = ?");
-            case ADMINISTRATOR -> connection.prepareStatement("SELECT id FROM t_administrator WHERE email = ? AND access_key = ?");
-        };
-        preparedStatement.setString(1, feedbackRequest.email());
-        preparedStatement.setString(2, feedbackRequest.accessKey());
-        ResultSet resultSet = preparedStatement.executeQuery();
-        if (!resultSet.next()) {
-            throw new NoSuchElementException("Nenhum usuário encontrado com as credenciais infommadas foi encontrado para realizar a busca de feedbacks.");
-        }
-        return resultSet.getLong("id");
     }
 }

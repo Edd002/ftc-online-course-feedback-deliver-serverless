@@ -24,11 +24,12 @@ public class FTCOnlineCourseFeedbackDeliverServerlessHandler implements RequestH
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent request, Context context) {
         LambdaLogger logger = context.getLogger();
-        logger.log("Requisição recebida em - FTC Online Course Feedback Deliver - Payload: " + request.getBody());
-        validateAPIGatewayProxyRequestEvent(request, context);
+        logger.log("Requisição recebida em FTC Online Course Feedback Deliver - Payload: " + request.getBody());
 
+        validateAPIGatewayProxyRequestEvent(request, context);
         FeedbackRequest feedbackRequest = PayloadObjectMapper.readValue(request.getBody(), FeedbackRequest.class);
-        List<FeedbackResponse> feedbackResponse = ftcOnlineCourseFeedbackDeliverServerlessDAO.getFeedbackResponse(feedbackRequest);
+        Long userId = ftcOnlineCourseFeedbackDeliverServerlessDAO.getUserIdByEmailAndAccessKey(feedbackRequest);
+        List<FeedbackResponse> feedbackResponse = ftcOnlineCourseFeedbackDeliverServerlessDAO.getFeedbackResponse(userId, feedbackRequest);
 
         return new APIGatewayProxyResponseEvent()
                 .withStatusCode(200)

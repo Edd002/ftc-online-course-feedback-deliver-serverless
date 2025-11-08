@@ -1,0 +1,58 @@
+package fiap.tech.challenge.online.course.feedback.deliver.serverless.crypto;
+
+import javax.crypto.*;
+import javax.crypto.spec.DESedeKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.InvalidParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.util.Base64;
+
+public class CryptoUtil {
+
+    private final Cipher cipher;
+    private final SecretKey secretKey;
+
+    public static CryptoUtil newInstance(String key) {
+        try {
+            if (key == null || key.isEmpty()) {
+                throw new InvalidParameterException("Erro na recuperação da chave de criptografia de senha.");
+            }
+            return new CryptoUtil(key);
+        } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeySpecException e) {
+            throw new RuntimeException("Erro ao gerar senha criptografada.");
+        } catch (Exception exception) {
+            throw new RuntimeException("Erro ao alterar senha criptografada.");
+        }
+    }
+
+    private CryptoUtil(String key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException {
+        byte[] encryptKey = key.getBytes(StandardCharsets.UTF_8);
+        cipher = Cipher.getInstance("DESede");
+        KeySpec keySpec = new DESedeKeySpec(encryptKey);
+        SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("DESede");
+        secretKey = secretKeyFactory.generateSecret(keySpec);
+    }
+
+    private String encrypt(String value) {
+        try {
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            byte[] cipherText = cipher.doFinal(value.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(cipherText);
+        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+            throw new RuntimeException();
+        }
+    }
+
+    public String decrypt(String value) {
+        try {
+            cipher.init(Cipher.DECRYPT_MODE, secretKey);
+            byte[] decipherText = cipher.doFinal(Base64.getDecoder().decode(value));
+            return new String(decipherText);
+        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+            throw new RuntimeException("Erro ao descriptografar senha criptografada.");
+        }
+    }
+}

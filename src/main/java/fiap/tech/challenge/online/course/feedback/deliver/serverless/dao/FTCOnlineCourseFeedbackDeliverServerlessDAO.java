@@ -26,7 +26,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
     }
 
     public List<FeedbackResponse> getFeedbackResponse(FeedbackRequest feedbackRequest) {
-        List<FeedbackResponse> feedbackResponse = new ArrayList<>();
+        List<FeedbackResponse> feedbackResponseList = new ArrayList<>();
         try {
             PreparedStatement preparedStatement = switch (feedbackRequest.userTypeRequest()) {
                 case TEACHER -> preparedStatementTeacher(connection, feedbackRequest);
@@ -35,54 +35,76 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
             };
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                feedbackResponse.add(new FeedbackResponse(
+                feedbackResponseList.add(new FeedbackResponse(
                         resultSet.getBoolean("urgent"),
                         resultSet.getString("description"),
                         resultSet.getString("comment"),
-                        resultSet.getString("teacher_email")));
+                        resultSet.getString("name_email"),
+                        resultSet.getString("student_email")));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return feedbackResponse;
+        return feedbackResponseList;
     }
 
     private static PreparedStatement preparedStatementTeacher(Connection connection, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, tt.email as teacher_email FROM public.t_feedback tf " +
+                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, ts.name as name_email, ts.email as student_email FROM public.t_feedback tf " +
                 "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
                 "INNER JOIN public.t_teacher_student tts on tts.id = ta.fk_teacher_student " +
                 "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +
                 "INNER JOIN public.t_student ts on ts.id = tts.fk_student " +
                 "INNER JOIN public.t_administrator tadmin on tadmin.id = tt.fk_administrator " +
-                "WHERE tt.id = ?;");
+                "WHERE tt.id = ? " +
+                "AND (? IS NULL OR tf.urgent = ?) AND (? IS NULL OR tf.description LIKE CONCAT( '%', ?, '%')) AND (? IS NULL OR tf.comment LIKE CONCAT( '%', ?, '%'));");
         preparedStatement.setLong(1, getUserByEmailAndAccessKey(connection, feedbackRequest));
+        preparedStatement.setBoolean(2, feedbackRequest.urgent());
+        preparedStatement.setBoolean(3, feedbackRequest.urgent());
+        preparedStatement.setString(4, feedbackRequest.description());
+        preparedStatement.setString(5, feedbackRequest.description());
+        preparedStatement.setString(6, feedbackRequest.comment());
+        preparedStatement.setString(7, feedbackRequest.comment());
         return preparedStatement;
     }
 
     private static PreparedStatement preparedStatementStudent(Connection connection, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, tt.email as teacher_email FROM public.t_feedback tf " +
+                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, ts.name as name_email, ts.email as student_email FROM public.t_feedback tf " +
                         "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
                         "INNER JOIN public.t_teacher_student tts on tts.id = ta.fk_teacher_student " +
                         "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +
                         "INNER JOIN public.t_student ts on ts.id = tts.fk_student " +
                         "INNER JOIN public.t_administrator tadmin on tadmin.id = tt.fk_administrator " +
-                        "WHERE ts.id = ?;");
+                        "WHERE tt.id = ? " +
+                        "AND (? IS NULL OR tf.urgent = ?) AND (? IS NULL OR tf.description LIKE CONCAT( '%', ?, '%')) AND (? IS NULL OR tf.comment LIKE CONCAT( '%', ?, '%'));");
         preparedStatement.setLong(1, getUserByEmailAndAccessKey(connection, feedbackRequest));
+        preparedStatement.setBoolean(2, feedbackRequest.urgent());
+        preparedStatement.setBoolean(3, feedbackRequest.urgent());
+        preparedStatement.setString(4, feedbackRequest.description());
+        preparedStatement.setString(5, feedbackRequest.description());
+        preparedStatement.setString(6, feedbackRequest.comment());
+        preparedStatement.setString(7, feedbackRequest.comment());
         return preparedStatement;
     }
 
     private static PreparedStatement preparedStatementAdministrator(Connection connection, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, tt.email as teacher_email FROM public.t_feedback tf " +
+                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, ts.name as name_email, ts.email as student_email FROM public.t_feedback tf " +
                         "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
                         "INNER JOIN public.t_teacher_student tts on tts.id = ta.fk_teacher_student " +
                         "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +
                         "INNER JOIN public.t_student ts on ts.id = tts.fk_student " +
                         "INNER JOIN public.t_administrator tadmin on tadmin.id = tt.fk_administrator " +
-                        "WHERE tadmin.id = ?;");
+                        "WHERE tt.id = ? " +
+                        "AND (? IS NULL OR tf.urgent = ?) AND (? IS NULL OR tf.description LIKE CONCAT( '%', ?, '%')) AND (? IS NULL OR tf.comment LIKE CONCAT( '%', ?, '%'));");
         preparedStatement.setLong(1, getUserByEmailAndAccessKey(connection, feedbackRequest));
+        preparedStatement.setBoolean(2, feedbackRequest.urgent());
+        preparedStatement.setBoolean(3, feedbackRequest.urgent());
+        preparedStatement.setString(4, feedbackRequest.description());
+        preparedStatement.setString(5, feedbackRequest.description());
+        preparedStatement.setString(6, feedbackRequest.comment());
+        preparedStatement.setString(7, feedbackRequest.comment());
         return preparedStatement;
     }
 
@@ -92,8 +114,8 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
             case STUDENT -> connection.prepareStatement("SELECT id FROM t_student WHERE email = ? AND access_key = ?");
             case ADMINISTRATOR -> connection.prepareStatement("SELECT id FROM t_administrator WHERE email = ? AND access_key = ?");
         };
-        preparedStatement.setString(1, feedbackRequest.getEmail());
-        preparedStatement.setString(2, feedbackRequest.getAccessKey());
+        preparedStatement.setString(1, feedbackRequest.email());
+        preparedStatement.setString(2, feedbackRequest.accessKey());
         ResultSet resultSet = preparedStatement.executeQuery();
         if (!resultSet.next()) {
             throw new NoSuchElementException("Nenhum usuário encontrado com as credenciais infommadas foi encontrado para realizar a busca de feedbacks.");

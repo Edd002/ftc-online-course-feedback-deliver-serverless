@@ -13,15 +13,37 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class FTCOnlineCourseFeedbackDeliverServerlessHandlerTests {
 
     @Test
-    void handleRequest_Success() {
+    void handleRequest_AdministratorSearchFeedbackSuccess() {
         FTCOnlineCourseFeedbackDeliverServerlessHandler handler = new FTCOnlineCourseFeedbackDeliverServerlessHandler();
         TestContext context = new TestContext();
-
         APIGatewayProxyRequestEvent request = new APIGatewayProxyRequestEvent();
         request.setHttpMethod("GET");
         request.setPath("/");
-        request.setBody(PayloadObjectMapper.writeValueAsString(new FeedbackRequest(UserTypeRequest.TEACHER, "teacher1@email.com", "123", false, "New Feedback", "New Comment")));
+        request.setBody(PayloadObjectMapper.writeValueAsString(new FeedbackRequest(UserTypeRequest.ADMINISTRATOR, "administrador1@email.com", "123", false, "Descrição Feedback", "Comentário Feedback")));
+        APIGatewayProxyResponseEvent response = handler.handleRequest(request, context);
+        assertEquals(200, response.getStatusCode().intValue());
+    }
 
+    @Test
+    void handleRequest_TeacherSearchFeedbackSuccess() {
+        FTCOnlineCourseFeedbackDeliverServerlessHandler handler = new FTCOnlineCourseFeedbackDeliverServerlessHandler();
+        TestContext context = new TestContext();
+        APIGatewayProxyRequestEvent request = new APIGatewayProxyRequestEvent();
+        request.setHttpMethod("GET");
+        request.setPath("/");
+        request.setBody(PayloadObjectMapper.writeValueAsString(new FeedbackRequest(UserTypeRequest.TEACHER, "teacher1@email.com", "123", false, "Descrição Feedback", "Comentário Feedback")));
+        APIGatewayProxyResponseEvent response = handler.handleRequest(request, context);
+        assertEquals(200, response.getStatusCode().intValue());
+    }
+
+    @Test
+    void handleRequest_StudentSearchFeedbackSuccess() {
+        FTCOnlineCourseFeedbackDeliverServerlessHandler handler = new FTCOnlineCourseFeedbackDeliverServerlessHandler();
+        TestContext context = new TestContext();
+        APIGatewayProxyRequestEvent request = new APIGatewayProxyRequestEvent();
+        request.setHttpMethod("GET");
+        request.setPath("/");
+        request.setBody(PayloadObjectMapper.writeValueAsString(new FeedbackRequest(UserTypeRequest.STUDENT, "student1@email.com", "123", false, "Descrição Feedback", "Comentário Feedback")));
         APIGatewayProxyResponseEvent response = handler.handleRequest(request, context);
         assertEquals(200, response.getStatusCode().intValue());
     }

@@ -1,4 +1,4 @@
-package fiap.tech.challenge.online.course.feedback.deliver.serverless.config;
+package fiap.tech.challenge.online.course.feedback.deliver.serverless.loader;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -8,7 +8,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class EnvPropertiesLoader {
+public class ApplicationPropertiesLoader {
 
     public static Properties loadProperties(ClassLoader classLoaderFilePath) {
         Properties properties = new Properties();
@@ -22,10 +22,9 @@ public class EnvPropertiesLoader {
             String value = properties.getProperty(key);
             Matcher matcher = pattern.matcher(value);
             StringBuilder sb = new StringBuilder();
-            Dotenv dotenv = Dotenv.load();
             while (matcher.find()) {
-                String envVarName = matcher.group(1);
-                String envVarValue = dotenv.get(envVarName);
+                String envVarName =  matcher.group(1);
+                String envVarValue = System.getenv(envVarName) != null ? System.getenv(envVarName) : Dotenv.load().get(envVarName);
                 if (envVarValue != null) {
                     matcher.appendReplacement(sb, Matcher.quoteReplacement(envVarValue));
                 } else {

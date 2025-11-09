@@ -85,13 +85,13 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
     private PreparedStatement preparedStatementTeacher(Connection connection, Long userId, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, ts.name as student_name, ts.email as student_email FROM public.t_feedback tf " +
-                "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
-                "INNER JOIN public.t_teacher_student tts on tts.id = ta.fk_teacher_student " +
-                "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +
-                "INNER JOIN public.t_student ts on ts.id = tts.fk_student " +
-                "INNER JOIN public.t_administrator tadmin on tadmin.id = tt.fk_administrator " +
-                "WHERE tt.id = ? " +
-                "AND (? IS NULL OR tf.urgent = ?) AND (? IS NULL OR tf.description LIKE CONCAT( '%', ?, '%')) AND (? IS NULL OR tf.comment LIKE CONCAT( '%', ?, '%'));");
+                        "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
+                        "INNER JOIN public.t_teacher_student tts on tts.id = ta.fk_teacher_student " +
+                        "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +
+                        "INNER JOIN public.t_student ts on ts.id = tts.fk_student " +
+                        "INNER JOIN public.t_administrator tadmin on tadmin.id = tt.fk_administrator " +
+                        "WHERE tt.id = ? " +
+                        "AND (? IS NULL OR tf.urgent = ?) AND (? IS NULL OR tf.description LIKE CONCAT( '%', ?, '%')) AND (? IS NULL OR tf.comment LIKE CONCAT( '%', ?, '%'));");
         return setPreparedStatementParameters(userId, feedbackRequest, preparedStatement);
     }
 
@@ -110,8 +110,13 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
 
     private PreparedStatement setPreparedStatementParameters(Long userId, FeedbackRequest feedbackRequest, PreparedStatement preparedStatement) throws SQLException {
         preparedStatement.setLong(1, userId);
-        preparedStatement.setBoolean(2, feedbackRequest.urgent());
-        preparedStatement.setBoolean(3, feedbackRequest.urgent());
+        if (feedbackRequest.urgent() == null) {
+            preparedStatement.setNull(2, Types.BOOLEAN);
+            preparedStatement.setNull(3, Types.BOOLEAN);
+        } else {
+            preparedStatement.setBoolean(2, feedbackRequest.urgent());
+            preparedStatement.setBoolean(3, feedbackRequest.urgent());
+        }
         preparedStatement.setString(4, feedbackRequest.description());
         preparedStatement.setString(5, feedbackRequest.description());
         preparedStatement.setString(6, feedbackRequest.comment());

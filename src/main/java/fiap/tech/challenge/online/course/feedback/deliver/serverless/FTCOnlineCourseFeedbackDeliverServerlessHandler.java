@@ -6,7 +6,12 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.amazonaws.services.lambda.runtime.logging.LogLevel;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.dao.FTCOnlineCourseFeedbackDeliverServerlessDAO;
-import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.*;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackRequest;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackResponse;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.HttpObjectMapper;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.UserTypeRequest;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.error.ErrorResponse;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.error.InvalidParameterErrorResponse;
 
 import java.security.InvalidParameterException;
 import java.util.List;
@@ -29,10 +34,10 @@ public class FTCOnlineCourseFeedbackDeliverServerlessHandler implements RequestH
             return new APIGatewayProxyResponseEvent().withStatusCode(200).withBody(HttpObjectMapper.writeValueAsString(feedbackResponse)).withIsBase64Encoded(false);
         } catch (InvalidParameterException e) {
             context.getLogger().log(e.getMessage(), LogLevel.ERROR);
-            return buildErrorResponse(request, 400, e);
+            return buildInvalidParameterErrorResponse(e);
         } catch (Exception e) {
             context.getLogger().log(e.getMessage(), LogLevel.ERROR);
-            return buildErrorResponse(request, 500, e);
+            return buildErrorResponse(request, e);
         }
     }
 
@@ -50,7 +55,11 @@ public class FTCOnlineCourseFeedbackDeliverServerlessHandler implements RequestH
         }
     }
 
-    private APIGatewayProxyResponseEvent buildErrorResponse(APIGatewayProxyRequestEvent request, int httpStatusCode, Exception e) {
-        return new APIGatewayProxyResponseEvent().withStatusCode(httpStatusCode).withBody(HttpObjectMapper.writeValueAsString(new ErrorResponse(UserTypeRequest.valueOf(request.getQueryStringParameters().get("userType")), request.getQueryStringParameters().get("email"), e.getMessage()))).withIsBase64Encoded(false);
+    private APIGatewayProxyResponseEvent buildInvalidParameterErrorResponse(Exception e) {
+        return new APIGatewayProxyResponseEvent().withStatusCode(400).withBody(HttpObjectMapper.writeValueAsString(new InvalidParameterErrorResponse(e.getMessage()))).withIsBase64Encoded(false);
+    }
+
+    private APIGatewayProxyResponseEvent buildErrorResponse(APIGatewayProxyRequestEvent request, Exception e) {
+        return new APIGatewayProxyResponseEvent().withStatusCode(500).withBody(HttpObjectMapper.writeValueAsString(new ErrorResponse(UserTypeRequest.valueOf(request.getQueryStringParameters().get("userType")), request.getQueryStringParameters().get("email"), e.getMessage()))).withIsBase64Encoded(false);
     }
 }

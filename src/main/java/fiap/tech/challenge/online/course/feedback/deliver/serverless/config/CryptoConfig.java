@@ -1,5 +1,7 @@
 package fiap.tech.challenge.online.course.feedback.deliver.serverless.config;
 
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.loader.ApplicationPropertiesLoader;
+
 import javax.crypto.*;
 import javax.crypto.spec.DESedeKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +20,7 @@ public class CryptoConfig {
 
     public CryptoConfig() {
         try {
-            Properties applicationProperties = EnvPropertiesLoader.loadProperties(getClass().getClassLoader());
+            Properties applicationProperties = ApplicationPropertiesLoader.loadProperties(getClass().getClassLoader());
             String key = applicationProperties.getProperty("application.crypto.key");
             if (key == null || key.isEmpty()) {
                 throw new InvalidParameterException("Erro na recuperação da chave de criptografia de senha.");

@@ -1,4 +1,4 @@
-package fiap.tech.challenge.online.course.feedback.deliver.serverless.config;
+package fiap.tech.challenge.online.course.feedback.deliver.serverless.loader;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -8,7 +8,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class EnvPropertiesLoader {
+public class ApplicationPropertiesLoader {
 
     public static Properties loadProperties(ClassLoader classLoaderFilePath) {
         Properties properties = new Properties();

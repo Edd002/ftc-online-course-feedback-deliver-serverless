@@ -1,7 +1,7 @@
 package fiap.tech.challenge.online.course.feedback.deliver.serverless.dao;
 
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.CryptoConfig;
-import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.DataSourceProperties;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.DataSourceConfig;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackRequest;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackResponse;
 
@@ -15,9 +15,9 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
     private final Connection connection;
 
     public FTCOnlineCourseFeedbackDeliverServerlessDAO() {
-        DataSourceProperties dataSourceProperties = new DataSourceProperties();
+        DataSourceConfig dataSourceConfig = new DataSourceConfig();
         try {
-            connection = DriverManager.getConnection(dataSourceProperties.getJdbcUrl(), dataSourceProperties.getUsername(), dataSourceProperties.getPassword());
+            connection = DriverManager.getConnection(dataSourceConfig.getJdbcUrl(), dataSourceConfig.getUsername(), dataSourceConfig.getPassword());
             if (!connection.isValid(0)) {
                 throw new SQLException("Não foi possível estabelecer uma conexão com o banco de dados.");
             }

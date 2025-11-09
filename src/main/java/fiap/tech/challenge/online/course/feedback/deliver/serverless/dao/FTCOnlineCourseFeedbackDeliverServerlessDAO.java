@@ -34,7 +34,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
                 case ADMINISTRATOR -> connection.prepareStatement("SELECT id FROM t_administrator WHERE email = ? AND access_key = ?");
             };
             preparedStatement.setString(1, feedbackRequest.email());
-            preparedStatement.setString(2, new CryptoConfig().decrypt(feedbackRequest.accessKey()));
+            preparedStatement.setString(2, new CryptoConfig().encrypt(feedbackRequest.accessKey()));
             ResultSet resultSet = preparedStatement.executeQuery();
             if (!resultSet.next()) {
                 throw new NoSuchElementException("Nenhum usuário encontrado com as credenciais infommadas foi encontrado para realizar a busca de feedbacks.");

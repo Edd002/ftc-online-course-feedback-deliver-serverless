@@ -28,7 +28,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
 
     public Long getUserIdByEmailAndAccessKey(FeedbackRequest feedbackRequest) {
         try {
-            PreparedStatement preparedStatement = switch (feedbackRequest.userTypeRequest()) {
+            PreparedStatement preparedStatement = switch (feedbackRequest.userType()) {
                 case ADMINISTRATOR -> connection.prepareStatement("SELECT id FROM t_administrator WHERE email = ? AND access_key = ?");
                 case TEACHER -> connection.prepareStatement("SELECT id FROM t_teacher WHERE email = ? AND access_key = ?");
                 case STUDENT -> connection.prepareStatement("SELECT id FROM t_student WHERE email = ? AND access_key = ?");
@@ -48,7 +48,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
     public List<FeedbackResponse> getFeedbackResponse(Long userId, FeedbackRequest feedbackRequest) {
         List<FeedbackResponse> feedbackResponseList = new ArrayList<>();
         try {
-            PreparedStatement preparedStatement = switch (feedbackRequest.userTypeRequest()) {
+            PreparedStatement preparedStatement = switch (feedbackRequest.userType()) {
                 case ADMINISTRATOR -> preparedStatementAdministrator(connection, userId, feedbackRequest);
                 case TEACHER -> preparedStatementTeacher(connection, userId, feedbackRequest);
                 case STUDENT -> preparedStatementStudent(connection, userId, feedbackRequest);

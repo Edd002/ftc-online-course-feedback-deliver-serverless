@@ -43,8 +43,8 @@ public class FTCOnlineCourseFeedbackDeliverServerlessHandler implements RequestH
 
     private FeedbackRequest validateAPIGatewayProxyRequestEvent(APIGatewayProxyRequestEvent request) {
         try {
-            if (request.getQueryStringParameters() == null || request.getQueryStringParameters().get("userType") == null || request.getQueryStringParameters().get("email") == null) {
-                throw new InvalidParameterException("O tipo e o e-mail de usuário são obrigatórios para realizar a busca de feedbacks.");
+            if (request.getQueryStringParameters() == null || request.getQueryStringParameters().get("userType") == null || request.getQueryStringParameters().get("email") == null || request.getQueryStringParameters().get("accessKey") == null) {
+                throw new InvalidParameterException("O tipo de usuário juntamente com seu o e-mail e chave de acesso são obrigatórios para realizar a busca de feedbacks.");
             }
             return HttpObjectMapper.convertValue(request.getQueryStringParameters(), FeedbackRequest.class);
         } catch (Exception e) {

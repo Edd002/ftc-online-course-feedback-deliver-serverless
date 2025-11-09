@@ -43,9 +43,6 @@ public class FTCOnlineCourseFeedbackDeliverServerlessHandler implements RequestH
 
     private FeedbackRequest validateAPIGatewayProxyRequestEvent(APIGatewayProxyRequestEvent request) {
         try {
-            if (!request.getHttpMethod().equals("GET")) {
-                throw new InvalidParameterException("Verbo HTTP inválido.");
-            }
             if (request.getQueryStringParameters() == null || request.getQueryStringParameters().get("userType") == null || request.getQueryStringParameters().get("email") == null) {
                 throw new InvalidParameterException("O tipo e o e-mail de usuário são obrigatórios para realizar a busca de feedbacks.");
             }

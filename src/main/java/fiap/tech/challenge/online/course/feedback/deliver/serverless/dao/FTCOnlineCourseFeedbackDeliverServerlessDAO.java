@@ -2,6 +2,7 @@ package fiap.tech.challenge.online.course.feedback.deliver.serverless.dao;
 
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.CryptoConfig;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.DataSourceConfig;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.AssessmentType;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackRequest;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackResponse;
 
@@ -60,8 +61,14 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
                         resultSet.getBoolean("urgent"),
                         resultSet.getString("description"),
                         resultSet.getString("comment"),
+                        resultSet.getString("teacher_name"),
+                        resultSet.getString("teacher_email"),
                         resultSet.getString("student_name"),
-                        resultSet.getString("student_email")));
+                        resultSet.getString("student_email"),
+                        resultSet.getString("assessment_name"),
+                        AssessmentType.valueOf(resultSet.getString("assessment_type")),
+                        resultSet.getDouble("assessment_score")
+                ));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -71,7 +78,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
 
     private PreparedStatement preparedStatementAdministrator(Connection connection, Long userId, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, ts.name as student_name, ts.email as student_email FROM public.t_feedback tf " +
+                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, tt.name as teacher_name, tt.email as teacher_email, ts.name as student_name, ts.email as student_email, ta.name as assessment_name, ta.type as assessment_type, ta.score as assessment_score FROM public.t_feedback tf " +
                         "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
                         "INNER JOIN public.t_teacher_student tts on tts.id = ta.fk_teacher_student " +
                         "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +
@@ -84,7 +91,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
 
     private PreparedStatement preparedStatementTeacher(Connection connection, Long userId, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, ts.name as student_name, ts.email as student_email FROM public.t_feedback tf " +
+                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, tt.name as teacher_name, tt.email as teacher_email, ts.name as student_name, ts.email as student_email, ta.name as assessment_name, ta.type as assessment_type, ta.score as assessment_score FROM public.t_feedback tf " +
                         "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
                         "INNER JOIN public.t_teacher_student tts on tts.id = ta.fk_teacher_student " +
                         "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +
@@ -97,7 +104,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
 
     private PreparedStatement preparedStatementStudent(Connection connection, Long userId, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, ts.name as student_name, ts.email as student_email FROM public.t_feedback tf " +
+                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, tt.name as teacher_name, tt.email as teacher_email, ts.name as student_name, ts.email as student_email, ta.name as assessment_name, ta.type as assessment_type, ta.score as assessment_score FROM public.t_feedback tf " +
                         "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
                         "INNER JOIN public.t_teacher_student tts on tts.id = ta.fk_teacher_student " +
                         "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +

@@ -7,9 +7,7 @@ import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.Fee
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackResponse;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
 
@@ -67,7 +65,8 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
                         resultSet.getString("student_email"),
                         resultSet.getString("assessment_name"),
                         AssessmentType.valueOf(resultSet.getString("assessment_type")),
-                        resultSet.getDouble("assessment_score")
+                        resultSet.getDouble("assessment_score"),
+                        resultSet.getTimestamp("created_in", Calendar.getInstance(TimeZone.getTimeZone("GMT-3"))).toString()
                 ));
             }
         } catch (SQLException e) {
@@ -78,7 +77,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
 
     private PreparedStatement preparedStatementAdministrator(Connection connection, Long userId, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, tt.name as teacher_name, tt.email as teacher_email, ts.name as student_name, ts.email as student_email, ta.name as assessment_name, ta.type as assessment_type, ta.score as assessment_score FROM public.t_feedback tf " +
+                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, tt.name as teacher_name, tt.email as teacher_email, ts.name as student_name, ts.email as student_email, ta.name as assessment_name, ta.type as assessment_type, ta.score as assessment_score, tf.created_in as created_in FROM public.t_feedback tf " +
                         "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
                         "INNER JOIN public.t_teacher_student tts on tts.id = ta.fk_teacher_student " +
                         "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +
@@ -91,7 +90,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
 
     private PreparedStatement preparedStatementTeacher(Connection connection, Long userId, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, tt.name as teacher_name, tt.email as teacher_email, ts.name as student_name, ts.email as student_email, ta.name as assessment_name, ta.type as assessment_type, ta.score as assessment_score FROM public.t_feedback tf " +
+                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, tt.name as teacher_name, tt.email as teacher_email, ts.name as student_name, ts.email as student_email, ta.name as assessment_name, ta.type as assessment_type, ta.score as assessment_score, tf.created_in as created_in FROM public.t_feedback tf " +
                         "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
                         "INNER JOIN public.t_teacher_student tts on tts.id = ta.fk_teacher_student " +
                         "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +
@@ -104,7 +103,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
 
     private PreparedStatement preparedStatementStudent(Connection connection, Long userId, FeedbackRequest feedbackRequest) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, tt.name as teacher_name, tt.email as teacher_email, ts.name as student_name, ts.email as student_email, ta.name as assessment_name, ta.type as assessment_type, ta.score as assessment_score FROM public.t_feedback tf " +
+                "SELECT tf.urgent as urgent, tf.description as description, tf.comment as comment, tt.name as teacher_name, tt.email as teacher_email, ts.name as student_name, ts.email as student_email, ta.name as assessment_name, ta.type as assessment_type, ta.score as assessment_score, tf.created_in as created_in FROM public.t_feedback tf " +
                         "INNER JOIN public.t_assessment ta on ta.id = tf.fk_assessment " +
                         "INNER JOIN public.t_teacher_student tts on tts.id = ta.fk_teacher_student " +
                         "INNER JOIN public.t_teacher tt on tt.id = tts.fk_teacher " +

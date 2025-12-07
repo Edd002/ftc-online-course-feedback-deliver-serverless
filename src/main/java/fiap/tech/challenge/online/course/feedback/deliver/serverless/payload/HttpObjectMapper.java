@@ -1,5 +1,6 @@
 package fiap.tech.challenge.online.course.feedback.deliver.serverless.payload;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -10,7 +11,7 @@ public class HttpObjectMapper {
     public static String writeValueAsString(Object value) {
         try {
             return payloadObjectMapper.writeValueAsString(value);
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             return null;
         }
     }
@@ -18,7 +19,7 @@ public class HttpObjectMapper {
     public static <T> T readValue(String content, Class<T> valueType) {
         try {
             return payloadObjectMapper.readValue(content, valueType);
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             return null;
         }
     }

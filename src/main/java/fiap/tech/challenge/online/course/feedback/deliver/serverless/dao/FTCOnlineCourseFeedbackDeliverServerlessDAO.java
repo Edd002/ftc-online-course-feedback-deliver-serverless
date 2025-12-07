@@ -2,9 +2,9 @@ package fiap.tech.challenge.online.course.feedback.deliver.serverless.dao;
 
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.CryptoConfig;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.DataSourceConfig;
-import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.AssessmentType;
-import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackRequest;
-import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackResponse;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.enumeration.AssessmentType;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.record.FeedbackRequest;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.record.FeedbackResponse;
 
 import java.sql.*;
 import java.util.*;
@@ -13,8 +13,8 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
 
     private final Connection connection;
 
-    public FTCOnlineCourseFeedbackDeliverServerlessDAO() {
-        DataSourceConfig dataSourceConfig = new DataSourceConfig();
+    public FTCOnlineCourseFeedbackDeliverServerlessDAO(Properties applicationProperties) {
+        DataSourceConfig dataSourceConfig = new DataSourceConfig(applicationProperties);
         try {
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(dataSourceConfig.getJdbcUrl(), dataSourceConfig.getUsername(), dataSourceConfig.getPassword());

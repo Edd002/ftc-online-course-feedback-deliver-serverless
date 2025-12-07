@@ -4,9 +4,9 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.type.TypeReference;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.mock.TestContext;
-import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.FeedbackRequest;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.record.FeedbackRequest;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.HttpObjectMapper;
-import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.UserTypeRequest;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.enumeration.UserType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,7 +20,7 @@ class FTCOnlineCourseFeedbackDeliverServerlessHandlerTests {
         APIGatewayProxyRequestEvent request = new APIGatewayProxyRequestEvent();
         request.setHttpMethod("GET");
         request.setPath("/");
-        request.setQueryStringParameters(HttpObjectMapper.convertValue(new FeedbackRequest(UserTypeRequest.ADMINISTRATOR, "administrador1@email.com", "123", false, "Descrição Feedback", "Comentário Feedback"), new TypeReference<>() {}));
+        request.setQueryStringParameters(HttpObjectMapper.convertValue(new FeedbackRequest(UserType.ADMINISTRATOR, "administrador1@email.com", "123", false, "Descrição Feedback", "Comentário Feedback"), new TypeReference<>() {}));
         APIGatewayProxyResponseEvent response = handler.handleRequest(request, context);
         assertEquals(200, response.getStatusCode().intValue());
     }
@@ -32,7 +32,7 @@ class FTCOnlineCourseFeedbackDeliverServerlessHandlerTests {
         APIGatewayProxyRequestEvent request = new APIGatewayProxyRequestEvent();
         request.setHttpMethod("GET");
         request.setPath("/");
-        request.setQueryStringParameters(HttpObjectMapper.convertValue(new FeedbackRequest(UserTypeRequest.TEACHER, "teacher1@email.com", "123", false, "Descrição Feedback", "Comentário Feedback"), new TypeReference<>() {}));
+        request.setQueryStringParameters(HttpObjectMapper.convertValue(new FeedbackRequest(UserType.TEACHER, "teacher1@email.com", "123", false, "Descrição Feedback", "Comentário Feedback"), new TypeReference<>() {}));
         APIGatewayProxyResponseEvent response = handler.handleRequest(request, context);
         assertEquals(200, response.getStatusCode().intValue());
     }
@@ -44,7 +44,7 @@ class FTCOnlineCourseFeedbackDeliverServerlessHandlerTests {
         APIGatewayProxyRequestEvent request = new APIGatewayProxyRequestEvent();
         request.setHttpMethod("GET");
         request.setPath("/");
-        request.setQueryStringParameters(HttpObjectMapper.convertValue(new FeedbackRequest(UserTypeRequest.STUDENT, "student1@email.com", "123", false, "Descrição Feedback", "Comentário Feedback"), new TypeReference<>() {}));
+        request.setQueryStringParameters(HttpObjectMapper.convertValue(new FeedbackRequest(UserType.STUDENT, "student1@email.com", "123", false, "Descrição Feedback", "Comentário Feedback"), new TypeReference<>() {}));
         APIGatewayProxyResponseEvent response = handler.handleRequest(request, context);
         assertEquals(200, response.getStatusCode().intValue());
     }

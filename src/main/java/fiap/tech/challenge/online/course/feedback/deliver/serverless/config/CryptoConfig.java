@@ -1,6 +1,6 @@
 package fiap.tech.challenge.online.course.feedback.deliver.serverless.config;
 
-import fiap.tech.challenge.online.course.feedback.deliver.serverless.loader.ApplicationPropertiesLoader;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.util.EnvUtil;
 
 import javax.crypto.*;
 import javax.crypto.spec.DESedeKeySpec;
@@ -11,7 +11,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
-import java.util.Properties;
 
 public class CryptoConfig {
 
@@ -20,10 +19,9 @@ public class CryptoConfig {
 
     public CryptoConfig() {
         try {
-            Properties applicationProperties = ApplicationPropertiesLoader.loadProperties(getClass().getClassLoader());
-            String key = applicationProperties.getProperty("application.crypto.key");
+            String key = EnvUtil.getVar("CRYPTO_KEY");
             if (key == null || key.isEmpty()) {
-                throw new InvalidParameterException("Erro na recuperação da chave de criptografia de senha.");
+                throw new InvalidParameterException("Erro na recuperação da chave de criptografia.");
             }
             byte[] encryptKey = key.getBytes(StandardCharsets.UTF_8);
             cipher = Cipher.getInstance("DESede");
@@ -31,9 +29,9 @@ public class CryptoConfig {
             SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("DESede");
             secretKey = secretKeyFactory.generateSecret(keySpec);
         } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeySpecException e) {
-            throw new RuntimeException("Erro ao gerar senha criptografada.");
+            throw new RuntimeException("Erro ao gerar texto criptografado.");
         } catch (Exception exception) {
-            throw new RuntimeException("Erro ao alterar senha criptografada.");
+            throw new RuntimeException("Erro ao alterar texto criptografado.");
         }
     }
 
@@ -43,7 +41,8 @@ public class CryptoConfig {
             byte[] cipherText = cipher.doFinal(value.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(cipherText);
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-            throw new RuntimeException();
+            System.err.println("Erro de criptografia de texto.");
+            throw new RuntimeException(e);
         }
     }
 
@@ -53,7 +52,8 @@ public class CryptoConfig {
             byte[] decipherText = cipher.doFinal(Base64.getDecoder().decode(value));
             return new String(decipherText);
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-            throw new RuntimeException("Erro ao descriptografar senha criptografada.");
+            System.err.println("Erro de descriptografia do texto: " + value);
+            throw new RuntimeException(e);
         }
     }
 }

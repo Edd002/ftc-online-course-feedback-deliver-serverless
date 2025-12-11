@@ -1,7 +1,7 @@
 package fiap.tech.challenge.online.course.feedback.deliver.serverless.dao;
 
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.CryptoConfig;
-import fiap.tech.challenge.online.course.feedback.deliver.serverless.config.DataSourceConfig;
+import fiap.tech.challenge.online.course.feedback.deliver.serverless.properties.DataSourceProperties;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.enumeration.AssessmentType;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.record.FeedbackRequest;
 import fiap.tech.challenge.online.course.feedback.deliver.serverless.payload.record.FeedbackResponse;
@@ -14,10 +14,10 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
     private final Connection connection;
 
     public FTCOnlineCourseFeedbackDeliverServerlessDAO(Properties applicationProperties) {
-        DataSourceConfig dataSourceConfig = new DataSourceConfig(applicationProperties);
+        DataSourceProperties dataSourceProperties = new DataSourceProperties(applicationProperties);
         try {
             Class.forName("org.postgresql.Driver");
-            connection = DriverManager.getConnection(dataSourceConfig.getJdbcUrl(), dataSourceConfig.getUsername(), dataSourceConfig.getPassword());
+            connection = DriverManager.getConnection(dataSourceProperties.getJdbcUrl(), dataSourceProperties.getUsername(), dataSourceProperties.getPassword());
             if (!connection.isValid(0)) {
                 throw new SQLException("Não foi possível estabelecer uma conexão com o banco de dados. URL de conexão: " + connection.getMetaData().getURL());
             }

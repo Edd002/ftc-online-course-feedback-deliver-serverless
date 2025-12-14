@@ -66,7 +66,7 @@ public class FTCOnlineCourseFeedbackDeliverServerlessDAO {
                         resultSet.getString("assessment_name"),
                         AssessmentType.valueOf(resultSet.getString("assessment_type")),
                         resultSet.getDouble("assessment_score"),
-                        resultSet.getTimestamp("created_in", Calendar.getInstance(TimeZone.getTimeZone("GMT-3"))).toString()
+                        resultSet.getTimestamp("created_in", Calendar.getInstance(TimeZone.getTimeZone("America/Sao_Paulo"))).toString()
                 ));
             }
         } catch (SQLException e) {
